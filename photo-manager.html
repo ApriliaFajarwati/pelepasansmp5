@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Manajemen Foto – Pelepasan IX SMP N 5 Klaten</title>
+<link rel="stylesheet" href="css/style.css"/>
+<style>
+body{background:linear-gradient(135deg,#060E1E 0%,#0D1F3C 100%);min-height:100vh;padding:20px;}
+.top-bar{display:flex;align-items:center;justify-content:space-between;max-width:1100px;margin:0 auto 24px;flex-wrap:wrap;gap:12px;}
+.page-title{font-family:'Cinzel',serif;font-size:1.4rem;color:var(--gold);}
+.main-wrap{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:20px;}
+
+/* Stats */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;}
+.stat-card{background:rgba(17,34,68,.7);border:1px solid rgba(212,175,55,.25);border-radius:14px;padding:16px;text-align:center;}
+.stat-num{font-family:'Cinzel',serif;font-size:1.9rem;font-weight:900;color:var(--gold);}
+.stat-lbl{font-size:.75rem;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.08em;margin-top:4px;}
+
+/* Method tabs */
+.method-tabs{display:flex;gap:10px;flex-wrap:wrap;}
+.tab-btn{padding:10px 22px;border-radius:10px;border:1px solid rgba(212,175,55,.35);background:transparent;color:rgba(255,255,255,.7);cursor:pointer;font-size:.9rem;transition:all .2s;}
+.tab-btn.active{background:var(--gold);color:#060E1E;border-color:var(--gold);font-weight:700;}
+
+/* Upload zone */
+.drop-zone{border:2px dashed rgba(212,175,55,.4);border-radius:16px;padding:50px 20px;text-align:center;cursor:pointer;transition:all .3s;position:relative;}
+.drop-zone:hover,.drop-zone.drag{border-color:var(--gold);background:rgba(212,175,55,.07);}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.drop-icon{font-size:3rem;margin-bottom:12px;}
+.drop-text{color:rgba(255,255,255,.7);font-size:1rem;}
+.drop-hint{font-size:.8rem;color:rgba(255,255,255,.4);margin-top:8px;}
+
+/* Drive section */
+.drive-form{display:flex;flex-direction:column;gap:14px;}
+.drive-row{display:grid;grid-template-columns:60px 1fr auto;gap:10px;align-items:center;}
+.drive-row label{color:var(--gold);font-weight:700;font-size:.9rem;text-align:center;}
+.drive-row input{padding:9px 12px;border-radius:9px;border:1px solid rgba(212,175,55,.3);background:rgba(255,255,255,.05);color:#fff;font-size:.85rem;width:100%;}
+.drive-row input:focus{outline:none;border-color:var(--gold);}
+.preview-small{width:44px;height:44px;border-radius:8px;object-fit:cover;border:2px solid rgba(212,175,55,.4);display:none;}
+
+/* Student grid */
+.student-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;}
+.student-card{background:rgba(17,34,68,.7);border:1px solid rgba(212,175,55,.2);border-radius:14px;padding:14px;text-align:center;position:relative;}
+.student-card.has-photo{border-color:#66BB6A;}
+.s-photo{width:72px;height:72px;border-radius:50%;margin:0 auto 10px;overflow:hidden;border:2px solid rgba(212,175,55,.4);display:flex;align-items:center;justify-content:center;background:rgba(10,22,40,.9);font-size:1.4rem;color:rgba(255,255,255,.5);}
+.s-photo img{width:100%;height:100%;object-fit:cover;}
+.s-name{font-size:.78rem;font-weight:600;color:rgba(255,255,255,.9);margin-bottom:3px;line-height:1.3;}
+.s-class{font-size:.7rem;color:var(--gold);}
+.s-actions{display:flex;gap:5px;justify-content:center;margin-top:10px;}
+.s-btn{padding:4px 9px;border-radius:7px;font-size:.7rem;cursor:pointer;border:1px solid;transition:all .2s;position:relative;}
+.s-btn input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.s-btn.upload{background:rgba(212,175,55,.1);border-color:rgba(212,175,55,.4);color:var(--gold);}
+.s-btn.upload:hover{background:rgba(212,175,55,.25);}
+.s-btn.del{background:rgba(198,40,40,.15);border-color:rgba(244,67,54,.4);color:#EF9A9A;}
+.s-btn.del:hover{background:rgba(198,40,40,.3);}
+.s-btn.drive{background:rgba(66,133,244,.15);border-color:rgba(66,133,244,.4);color:#90CAF9;}
+.s-btn.drive:hover{background:rgba(66,133,244,.3);}
+
+/* Toolbar */
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.search-box{flex:1;min-width:180px;padding:9px 14px;border-radius:10px;border:1px solid rgba(212,175,55,.3);background:rgba(255,255,255,.05);color:#fff;font-size:.88rem;}
+.search-box:focus{outline:none;border-color:var(--gold);}
+select.filter-sel{padding:9px 12px;border-radius:10px;border:1px solid rgba(212,175,55,.3);background:rgba(10,22,40,.9);color:rgba(255,255,255,.8);font-size:.85rem;}
+
+/* Progress */
+.progress-bar{height:8px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden;margin-top:6px;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--gold-dark),var(--gold));border-radius:4px;transition:width .4s;}
+
+/* Drive modal */
+.drive-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center;}
+.drive-modal.active{display:flex;}
+.drive-box{background:#0D1F3C;border:1px solid rgba(212,175,55,.4);border-radius:18px;padding:28px;max-width:480px;width:90%;position:relative;}
+.drive-box h3{font-family:'Cinzel',serif;color:var(--gold);margin-bottom:16px;}
+.drive-input-wrap{display:flex;flex-direction:column;gap:10px;}
+.drive-input-wrap label{font-size:.82rem;color:rgba(255,255,255,.6);}
+.drive-input-wrap input{padding:10px 14px;border-radius:10px;border:1px solid rgba(212,175,55,.3);background:rgba(255,255,255,.06);color:#fff;font-size:.88rem;width:100%;}
+.drive-input-wrap input:focus{outline:none;border-color:var(--gold);}
+.drive-preview-img{width:100px;height:100px;border-radius:12px;object-fit:cover;border:2px solid rgba(212,175,55,.4);margin:10px auto;display:block;display:none;}
+.drive-actions{display:flex;gap:10px;margin-top:18px;}
+</style>
+</head>
+<body>
+<div id="toast-container"></div>
+
+<!-- Drive URL Modal -->
+<div class="drive-modal" id="driveModal">
+  <div class="drive-box">
+    <h3>🔗 Sambungkan Foto dari Google Drive / URL</h3>
+    <div class="drive-input-wrap">
+      <label>Siswa: <strong id="driveStudentName" style="color:var(--gold)"></strong></label>
+      <label>Tempel URL foto (Google Drive, URL publik, dll):</label>
+      <input type="url" id="driveUrlInput" placeholder="https://drive.google.com/uc?id=... atau URL gambar lain" oninput="previewDriveUrl()"/>
+      <small style="color:rgba(255,255,255,.4);font-size:.75rem;">💡 Google Drive: buka foto → Bagikan → Salin tautan → ubah <code>/file/d/ID/view</code> menjadi <code>/uc?id=ID</code></small>
+      <img id="drivePreviewImg" class="drive-preview-img" alt="Preview"/>
+    </div>
+    <div class="drive-actions">
+      <button class="btn btn-gold" style="flex:1" onclick="saveDrivePhoto()">💾 Simpan</button>
+      <button class="btn btn-navy" onclick="closeDriveModal()">Batal</button>
+    </div>
+  </div>
+</div>
+
+<div class="top-bar">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <a href="index.html" class="btn btn-navy btn-sm">← Menu</a>
+    <a href="admin.html" class="btn btn-navy btn-sm">⚙️ Admin</a>
+    <div class="page-title">📷 Manajemen Foto Siswa</div>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button class="btn btn-outline btn-sm" onclick="clearAllPhotos()">🗑️ Hapus Semua</button>
+    <button class="btn btn-gold btn-sm" onclick="exportPhotoList()">📥 Export Daftar</button>
+  </div>
+</div>
+
+<div class="main-wrap">
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-num">256</div><div class="stat-lbl">Total Siswa</div></div>
+    <div class="stat-card"><div class="stat-num" id="statHas">0</div><div class="stat-lbl">Ada Foto</div></div>
+    <div class="stat-card"><div class="stat-num" id="statNo">256</div><div class="stat-lbl">Belum Foto</div></div>
+    <div class="stat-card">
+      <div class="stat-num" id="statPct">0%</div>
+      <div class="stat-lbl">Progress</div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <!-- Method tabs -->
+  <div class="card" style="padding:18px;">
+    <div style="margin-bottom:14px;font-weight:700;color:var(--gold);">Metode Upload Massal</div>
+    <div class="method-tabs" style="margin-bottom:18px;">
+      <button class="tab-btn active" onclick="switchTab('bulk')" id="tab-bulk">📁 Upload Massal</button>
+      <button class="tab-btn" onclick="switchTab('drive')" id="tab-drive">🔗 Google Drive (URL)</button>
+    </div>
+
+    <!-- Bulk upload -->
+    <div id="panel-bulk">
+      <div class="drop-zone" id="dropZone">
+        <input type="file" accept="image/*" multiple onchange="handleBulk(this)" id="bulkFileInput"/>
+        <div class="drop-icon">📁</div>
+        <div class="drop-text">Pilih atau drop banyak foto sekaligus</div>
+        <div class="drop-hint">Nama file harus mengandung nomor urut siswa · Contoh: <strong>001_nama.jpg</strong> atau <strong>foto_032.png</strong></div>
+        <div class="drop-hint" style="margin-top:6px;">Ukuran max per foto: 2MB · Format: JPG, PNG, WEBP</div>
+      </div>
+      <div id="bulkResult" style="margin-top:12px;"></div>
+    </div>
+
+    <!-- Drive bulk -->
+    <div id="panel-drive" style="display:none;">
+      <div style="color:rgba(255,255,255,.65);font-size:.88rem;margin-bottom:16px;">
+        Isi URL foto Google Drive untuk setiap siswa. Format URL Google Drive yang benar:<br>
+        <code style="color:var(--gold);font-size:.8rem;">https://drive.google.com/uc?id=FILE_ID&export=view</code>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+        <input type="text" class="search-box" placeholder="Cari nama siswa..." id="driveSearch" oninput="renderDriveForm()" style="max-width:300px;"/>
+        <select class="filter-sel" id="driveClassFilter" onchange="renderDriveForm()">
+          <option value="">Semua Kelas</option>
+          <option>IX A</option><option>IX B</option><option>IX C</option><option>IX D</option>
+          <option>IX E</option><option>IX F</option><option>IX G</option><option>IX H</option>
+        </select>
+      </div>
+      <div id="driveFormContainer"></div>
+    </div>
+  </div>
+
+  <!-- Student grid -->
+  <div class="card" style="padding:18px;">
+    <div class="toolbar" style="margin-bottom:16px;">
+      <input class="search-box" type="text" placeholder="🔍 Cari nama siswa…" id="gridSearch" oninput="renderGrid()"/>
+      <select class="filter-sel" id="gridClass" onchange="renderGrid()">
+        <option value="">Semua Kelas</option>
+        <option>IX A</option><option>IX B</option><option>IX C</option><option>IX D</option>
+        <option>IX E</option><option>IX F</option><option>IX G</option><option>IX H</option>
+      </select>
+      <select class="filter-sel" id="gridPhoto" onchange="renderGrid()">
+        <option value="">Semua</option>
+        <option value="has">Ada Foto</option>
+        <option value="no">Belum Foto</option>
+      </select>
+    </div>
+    <div class="student-grid" id="studentGrid"></div>
+  </div>
+</div>
+
+<script src="js/students.js"></script>
+<script>
+let driveTargetId = null;
+
+// ── Stats ──
+function updateStats() {
+  let has = 0;
+  STUDENTS.forEach(s => { if (localStorage.getItem(`photo_${s.id}`)) has++; });
+  const no = 256 - has;
+  const pct = Math.round(has / 256 * 100);
+  document.getElementById('statHas').textContent = has;
+  document.getElementById('statNo').textContent = no;
+  document.getElementById('statPct').textContent = pct + '%';
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+// ── Tabs ──
+function switchTab(tab) {
+  ['bulk','drive'].forEach(t => {
+    document.getElementById(`tab-${t}`).classList.toggle('active', t === tab);
+    document.getElementById(`panel-${t}`).style.display = t === tab ? 'block' : 'none';
+  });
+  if (tab === 'drive') renderDriveForm();
+}
+
+// ── Bulk Upload ──
+function handleBulk(input) {
+  const files = Array.from(input.files);
+  let ok = 0, skip = 0, errors = [];
+  let done = 0;
+  if (!files.length) return;
+  files.forEach(file => {
+    const match = file.name.match(/(\d+)/);
+    if (!match) { skip++; done++; check(); return; }
+    const num = parseInt(match[1]);
+    const s = getStudentByNumber(num);
+    if (!s) { skip++; done++; errors.push(`No.${num} tidak ditemukan`); check(); return; }
+    if (file.size > 2*1024*1024) { skip++; done++; errors.push(`${file.name} > 2MB`); check(); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      if (saveStudentPhoto(s.id, e.target.result)) ok++;
+      else { skip++; errors.push(`${file.name}: storage penuh`); }
+      done++;
+      check();
+    };
+    reader.readAsDataURL(file);
+  });
+  function check() {
+    if (done < files.length) return;
+    updateStats(); renderGrid();
+    let msg = `<div style="padding:12px 16px;border-radius:10px;background:rgba(46,125,50,.2);border:1px solid #66BB6A;color:#A5D6A7;margin-top:4px;">`;
+    msg += `✅ <strong>${ok}</strong> foto berhasil disimpan`;
+    if (skip) msg += ` · ⚠️ <strong>${skip}</strong> dilewati`;
+    if (errors.length) msg += `<div style="margin-top:6px;font-size:.78rem;opacity:.7;">${errors.slice(0,5).join('<br>')}</div>`;
+    msg += `</div>`;
+    document.getElementById('bulkResult').innerHTML = msg;
+    showToast(`✅ ${ok} foto disimpan`, 'success');
+  }
+}
+
+// drag & drop
+const dz = document.getElementById('dropZone');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+dz.addEventListener('drop', e => {
+  e.preventDefault(); dz.classList.remove('drag');
+  const dt = { files: e.dataTransfer.files };
+  handleBulk(dt);
+});
+
+// ── Drive Form (per-siswa URL) ──
+function renderDriveForm() {
+  const q = document.getElementById('driveSearch').value.toLowerCase();
+  const cls = document.getElementById('driveClassFilter').value;
+  const list = STUDENTS.filter(s =>
+    (!q || s.name.toLowerCase().includes(q)) && (!cls || s.class === cls)
+  ).slice(0, 40);
+
+  const html = list.map(s => {
+    const photo = localStorage.getItem(`photo_${s.id}`);
+    const isUrl = photo && photo.startsWith('http');
+    return `<div class="drive-row" style="padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06);">
+      <label style="font-size:.75rem;">${String(s.overallNumber).padStart(3,'0')}</label>
+      <div>
+        <div style="font-size:.82rem;color:rgba(255,255,255,.9);">${s.name} <span style="color:var(--gold);font-size:.72rem;">${s.class}</span></div>
+        <input type="url" placeholder="https://drive.google.com/uc?id=..." 
+          value="${isUrl ? photo : ''}"
+          data-id="${s.id}"
+          onchange="saveDriveInline(this)"
+          style="margin-top:4px;padding:6px 10px;border-radius:8px;border:1px solid rgba(212,175,55,.3);background:rgba(255,255,255,.05);color:#fff;font-size:.8rem;width:100%;"/>
+      </div>
+      ${photo ? `<img src="${photo}" class="preview-small" style="display:block;" onerror="this.style.display='none'"/>` : '<div style="width:44px;"></div>'}
+    </div>`;
+  }).join('');
+  document.getElementById('driveFormContainer').innerHTML = html ||
+    '<div style="color:rgba(255,255,255,.4);text-align:center;padding:20px;">Tidak ada siswa ditemukan</div>';
+}
+
+function saveDriveInline(input) {
+  const url = input.value.trim();
+  if (!url) { removeStudentPhoto(input.dataset.id); updateStats(); return; }
+  // Convert Google Drive share URL to direct
+  const converted = convertDriveUrl(url);
+  localStorage.setItem(`photo_${input.dataset.id}`, converted);
+  input.value = converted;
+  updateStats(); renderGrid();
+  showToast('✅ URL foto disimpan', 'success');
+}
+
+function convertDriveUrl(url) {
+  // Convert sharing URL to direct download URL
+  const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (m) return `https://drive.google.com/uc?id=${m[1]}&export=view`;
+  return url;
+}
+
+// ── Drive Modal (per card) ──
+function openDriveModal(studentId) {
+  driveTargetId = studentId;
+  const s = STUDENTS.find(x => x.id === studentId);
+  document.getElementById('driveStudentName').textContent = s ? s.name : '';
+  const existing = localStorage.getItem(`photo_${studentId}`);
+  document.getElementById('driveUrlInput').value = existing && existing.startsWith('http') ? existing : '';
+  document.getElementById('drivePreviewImg').style.display = 'none';
+  document.getElementById('driveModal').classList.add('active');
+  if (existing && existing.startsWith('http')) previewDriveUrl();
+}
+
+function closeDriveModal() {
+  document.getElementById('driveModal').classList.remove('active');
+  driveTargetId = null;
+}
+
+function previewDriveUrl() {
+  const url = document.getElementById('driveUrlInput').value.trim();
+  const img = document.getElementById('drivePreviewImg');
+  if (!url) { img.style.display = 'none'; return; }
+  const converted = convertDriveUrl(url);
+  img.src = converted;
+  img.style.display = 'block';
+  img.onerror = () => { img.style.display = 'none'; };
+}
+
+function saveDrivePhoto() {
+  if (!driveTargetId) return;
+  const url = document.getElementById('driveUrlInput').value.trim();
+  if (!url) { showToast('Masukkan URL foto', 'error'); return; }
+  const converted = convertDriveUrl(url);
+  localStorage.setItem(`photo_${driveTargetId}`, converted);
+  showToast('✅ Foto dari Drive disimpan', 'success');
+  closeDriveModal(); updateStats(); renderGrid();
+}
+
+// ── Student Grid ──
+function renderGrid() {
+  const q = document.getElementById('gridSearch').value.toLowerCase();
+  const cls = document.getElementById('gridClass').value;
+  const pf = document.getElementById('gridPhoto').value;
+  const list = STUDENTS.filter(s => {
+    const hasPhoto = !!localStorage.getItem(`photo_${s.id}`);
+    return (!q || s.name.toLowerCase().includes(q)) &&
+           (!cls || s.class === cls) &&
+           (!pf || (pf==='has' && hasPhoto) || (pf==='no' && !hasPhoto));
+  });
+  const grid = document.getElementById('studentGrid');
+  grid.innerHTML = list.map(s => {
+    const photo = localStorage.getItem(`photo_${s.id}`);
+    const ini = s.name.split(' ').slice(0,2).map(w=>w[0]).join('');
+    return `<div class="student-card ${photo?'has-photo':''}" id="card-${s.id}">
+      <div class="s-photo">
+        ${photo ? `<img src="${photo}" alt="${s.name}" onerror="this.parentElement.textContent='${ini}'"/>` : ini}
+      </div>
+      <div class="s-name">${s.name}</div>
+      <div class="s-class">${s.class} · No.${s.classNumber}</div>
+      <div class="s-actions">
+        <label class="s-btn upload" title="Upload dari komputer">
+          📷
+          <input type="file" accept="image/*" hidden onchange="uploadSingle(this,'${s.id}')"/>
+        </label>
+        <button class="s-btn drive" title="Sambungkan URL" onclick="openDriveModal('${s.id}')">🔗</button>
+        ${photo ? `<button class="s-btn del" onclick="delPhoto('${s.id}')">🗑️</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function uploadSingle(input, id) {
+  const file = input.files[0]; if (!file) return;
+  if (file.size > 2*1024*1024) { showToast('Max 2MB', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    if (saveStudentPhoto(id, e.target.result)) {
+      showToast('✅ Foto disimpan', 'success');
+      updateStats(); renderGrid();
+    } else showToast('❌ Penyimpanan penuh', 'error');
+  };
+  reader.readAsDataURL(file);
+}
+
+function delPhoto(id) {
+  if (!confirm('Hapus foto siswa ini?')) return;
+  removeStudentPhoto(id);
+  showToast('🗑️ Foto dihapus', 'info');
+  updateStats(); renderGrid();
+}
+
+function clearAllPhotos() {
+  if (!confirm('Hapus SEMUA foto siswa? Tindakan ini tidak bisa dibatalkan.')) return;
+  STUDENTS.forEach(s => removeStudentPhoto(s.id));
+  showToast('🗑️ Semua foto dihapus', 'info');
+  updateStats(); renderGrid();
+}
+
+function exportPhotoList() {
+  const rows = ['No,Nama,Kelas,No Kelas,Ada Foto,Sumber Foto'];
+  STUDENTS.forEach(s => {
+    const p = localStorage.getItem(`photo_${s.id}`);
+    const hasFoto = p ? 'Ya' : 'Tidak';
+    const src = p ? (p.startsWith('http') ? 'URL/Drive' : 'Upload Lokal') : '-';
+    rows.push(`${s.overallNumber},"${s.name}",${s.class},${s.classNumber},${hasFoto},${src}`);
+  });
+  const blob = new Blob([rows.join('\n')], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'daftar_foto_siswa.csv';
+  a.click();
+  showToast('📥 Daftar foto diekspor', 'success');
+}
+
+// Toast
+function showToast(msg, type='info') {
+  const tc = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  tc.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+
+// Close drive modal on backdrop
+document.getElementById('driveModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeDriveModal();
+});
+
+// Init
+updateStats();
+renderGrid();
+</script>
+</body>
+</html>

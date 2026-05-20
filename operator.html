@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Panel Operator – Pelepasan Kelas IX SMP N 5 Klaten</title>
+<link rel="stylesheet" href="css/style.css"/>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+body{background:linear-gradient(135deg,#060E1E 0%,#0D1F3C 100%);min-height:100vh;padding:20px;}
+.top-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  max-width:1100px;margin:0 auto 24px;flex-wrap:wrap;gap:12px;
+}
+.top-title{font-family:'Cinzel',serif;font-size:1.3rem;color:var(--gold);}
+.page-layout{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:24px;max-width:1100px;margin:0 auto;
+}
+@media(max-width:768px){.page-layout{grid-template-columns:1fr;}}
+
+/* Scanner panel */
+.panel{padding:24px;border-radius:20px;}
+.panel-title{
+  font-family:'Cinzel',serif;font-size:1rem;color:var(--gold);
+  text-transform:uppercase;letter-spacing:.1em;margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;
+}
+#reader{
+  border-radius:14px;overflow:hidden;
+  background:#000;width:100%;
+}
+#reader video{border-radius:14px!important;}
+
+/* Status indicator */
+.scan-status{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 16px;border-radius:10px;margin-top:12px;
+  background:rgba(255,255,255,.05);
+  font-size:.9rem;
+}
+.status-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.dot-green{background:#4CAF50;animation:pulse 1.5s infinite;}
+.dot-yellow{background:#FFC107;}
+.dot-red{background:#F44336;}
+
+/* Manual input */
+.manual-input-wrap{display:flex;gap:8px;margin-top:16px;}
+
+/* Student preview */
+#previewCard{display:none;animation:fadeInUp .4s ease;}
+.preview-header{
+  display:flex;align-items:center;gap:16px;margin-bottom:16px;
+}
+.preview-photo{
+  width:80px;height:80px;border-radius:50%;
+  border:3px solid var(--gold);overflow:hidden;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--navy-mid);font-size:2rem;
+  color:var(--gold-light);font-family:'Cinzel',serif;
+}
+.preview-photo img{width:100%;height:100%;object-fit:cover;}
+.preview-name{font-family:'Cinzel',serif;font-size:1.2rem;color:#fff;font-weight:700;}
+.preview-class{color:var(--blue-light);font-size:.9rem;font-weight:600;margin-top:4px;}
+.preview-num{
+  background:rgba(212,175,55,.15);border:1px solid var(--gold);
+  border-radius:8px;padding:4px 12px;font-size:.85rem;color:var(--gold);
+  display:inline-block;margin-top:6px;
+}
+
+/* Action buttons */
+.action-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+
+/* History list */
+#historyList{max-height:320px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;}
+.history-item{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 14px;border-radius:10px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(212,175,55,.15);
+  transition:background .2s;font-size:.85rem;
+}
+.history-item:hover{background:rgba(212,175,55,.08);}
+.history-num{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),var(--gold-light));
+  color:var(--navy);font-weight:900;font-size:.8rem;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.history-info{flex:1;}
+.history-name{font-weight:600;color:#fff;}
+.history-class{color:rgba(255,255,255,.55);font-size:.78rem;}
+.history-time{font-size:.75rem;color:rgba(255,255,255,.4);}
+
+/* Progress */
+.progress-wrap{margin-top:16px;}
+.progress-bar-bg{
+  height:10px;background:rgba(255,255,255,.1);border-radius:5px;overflow:hidden;
+}
+.progress-bar-fill{
+  height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));
+  border-radius:5px;transition:width .5s ease;
+}
+.progress-text{font-size:.82rem;color:rgba(255,255,255,.6);margin-top:6px;text-align:center;}
+
+/* Sound controls */
+.sound-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.toggle-switch{position:relative;width:48px;height:26px;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-slider{
+  position:absolute;inset:0;cursor:pointer;
+  background:rgba(255,255,255,.2);border-radius:26px;transition:.3s;
+}
+.toggle-slider::before{
+  content:'';position:absolute;height:20px;width:20px;
+  left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.3s;
+}
+input:checked + .toggle-slider{background:var(--gold);}
+input:checked + .toggle-slider::before{transform:translateX(22px);}
+
+/* Connection */
+.conn-badge{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);
+  border-radius:50px;padding:6px 14px;font-size:.82rem;
+}
+</style>
+</head>
+<body>
+<div id="toast-container"></div>
+
+<div class="top-bar">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <a href="index.html" class="btn btn-navy btn-sm">← Menu</a>
+    <div class="top-title">🎯 Panel Operator</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+    <div class="conn-badge" id="connBadge">
+      <span class="status-dot dot-yellow" id="connDot"></span>
+      <span id="connText">Menghubungkan…</span>
+    </div>
+    <a href="display.html" target="_blank" class="btn btn-gold btn-sm">🖥️ Buka Layar</a>
+  </div>
+</div>
+
+<div class="page-layout">
+  <!-- LEFT: Scanner -->
+  <div>
+    <div class="card panel">
+      <div class="panel-title">📷 Scanner QR Code</div>
+      <div id="reader"></div>
+      <div class="scan-status">
+        <div class="status-dot dot-yellow" id="scanDot"></div>
+        <span id="scanStatus">Memulai kamera…</span>
+      </div>
+
+      <div style="margin-top:16px;">
+        <label class="field-label">Input Manual (kode/nomor siswa)</label>
+        <div class="manual-input-wrap">
+          <input type="text" id="manualInput" class="input-field" placeholder="Contoh: SMPN5KLT2026-001 atau 1"/>
+          <button class="btn btn-gold" onclick="manualLookup()">Cari</button>
+        </div>
+      </div>
+
+      <!-- Sound controls -->
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(212,175,55,.2);">
+        <div class="panel-title" style="margin-bottom:12px;">🔊 Pengaturan Suara</div>
+        <div class="sound-row">
+          <label class="field-label" style="margin:0;">TTS Nama Siswa</label>
+          <label class="toggle-switch">
+            <input type="checkbox" id="ttsToggle" checked>
+            <span class="toggle-slider"></span>
+          </label>
+          <label class="field-label" style="margin:0;">Tepuk Tangan</label>
+          <label class="toggle-switch">
+            <input type="checkbox" id="applauseToggle" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+        <div style="margin-top:12px;">
+          <label class="field-label">Volume TTS</label>
+          <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="1"
+            style="width:100%;accent-color:var(--gold);" oninput="this.nextElementSibling.textContent=Math.round(this.value*100)+'%'"/>
+          <span style="font-size:.82rem;color:var(--gold);">100%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Preview & History -->
+  <div style="display:flex;flex-direction:column;gap:20px;">
+    <!-- Student Preview -->
+    <div class="card panel">
+      <div class="panel-title">👤 Siswa Terpilih</div>
+      <div id="previewCard">
+        <div class="preview-header">
+          <div class="preview-photo" id="prevPhoto"><span id="prevInitials">?</span></div>
+          <div>
+            <div class="preview-name" id="prevName">—</div>
+            <div class="preview-class" id="prevClass">—</div>
+            <div class="preview-num" id="prevNum">—</div>
+          </div>
+        </div>
+        <div class="action-row">
+          <button class="btn btn-gold" onclick="sendToDisplay()">📡 Tampilkan di Layar</button>
+          <button class="btn btn-outline btn-sm" onclick="speakPreview()">🔊 Ucapkan</button>
+          <button class="btn btn-navy btn-sm" onclick="clearPreview()">✕ Batal</button>
+        </div>
+      </div>
+      <div id="previewEmpty" style="text-align:center;padding:24px;color:rgba(255,255,255,.4);">
+        <div style="font-size:2.5rem;margin-bottom:8px;">📱</div>
+        <div>Scan QR Code siswa atau input manual</div>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="card panel">
+      <div class="panel-title">📊 Progress Pemanggilan</div>
+      <div class="progress-wrap">
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="opProgress" style="width:0%"></div></div>
+        <div class="progress-text"><span id="opCount">0</span> / 256 siswa dipanggil</div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+        <button class="btn btn-outline btn-sm" onclick="resetAll()">↩ Reset Semua</button>
+        <button class="btn btn-navy btn-sm" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+        <button class="btn btn-gold btn-sm" onclick="nextSequential()">⏭ Siswa Berikutnya</button>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="card panel" style="flex:1;">
+      <div class="panel-title">📋 Riwayat Pemanggilan</div>
+      <div id="historyList">
+        <div style="text-align:center;padding:20px;color:rgba(255,255,255,.4);font-size:.85rem;">
+          Belum ada siswa yang dipanggil
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/students.js"></script>
+<script>
+// ── BroadcastChannel ──
+const bc = new BroadcastChannel('pelepasan_ch');
+let currentStudentData = null;
+let history = JSON.parse(localStorage.getItem('callHistory') || '[]');
+let calledCount = parseInt(localStorage.getItem('shownCount') || '0');
+let nextIndex = calledCount; // sequential index
+
+// Check connection to display
+function checkConnection() {
+  const dot = document.getElementById('connDot');
+  const txt = document.getElementById('connText');
+  // We just mark as "ready" — BroadcastChannel is always available
+  dot.className = 'status-dot dot-green';
+  txt.textContent = 'Terhubung ke Layar';
+}
+checkConnection();
+updateProgress();
+renderHistory();
+
+// ── QR Scanner ──
+const html5QrCode = new Html5Qrcode("reader");
+const scanConfig = { fps: 10, qrbox: { width: 260, height: 260 } };
+
+function startScanner() {
+  html5QrCode.start(
+    { facingMode: "environment" },
+    scanConfig,
+    onScanSuccess,
+    () => {}
+  ).then(() => {
+    document.getElementById('scanDot').className = 'status-dot dot-green';
+    document.getElementById('scanStatus').textContent = 'Kamera aktif — Arahkan QR Code ke kamera';
+  }).catch(() => {
+    // Try default camera
+    html5QrCode.start({ facingMode: "user" }, scanConfig, onScanSuccess, ()=>{})
+    .then(() => {
+      document.getElementById('scanDot').className = 'status-dot dot-green';
+      document.getElementById('scanStatus').textContent = 'Kamera aktif';
+    }).catch(() => {
+      document.getElementById('scanDot').className = 'status-dot dot-red';
+      document.getElementById('scanStatus').textContent = 'Kamera tidak tersedia — gunakan input manual';
+    });
+  });
+}
+startScanner();
+
+let lastScanned = '';
+let scanCooldown = false;
+
+function onScanSuccess(decodedText) {
+  if (scanCooldown || decodedText === lastScanned) return;
+  lastScanned = decodedText;
+  scanCooldown = true;
+  setTimeout(() => { scanCooldown = false; lastScanned = ''; }, 3000);
+
+  const student = getStudentByQR(decodedText) ||
+                  getStudentByNumber(decodedText.replace(/\D/g,''));
+  if (student) {
+    setPreview(student);
+    showToast(`✅ Ditemukan: ${student.name}`, 'success');
+    // Auto send to display
+    sendToDisplay(student);
+  } else {
+    showToast(`❌ QR tidak dikenali: ${decodedText}`, 'error');
+  }
+}
+
+// ── Manual lookup ──
+function manualLookup() {
+  const val = document.getElementById('manualInput').value.trim();
+  if (!val) return;
+  let student = getStudentByQR(val.toUpperCase()) || getStudentByNumber(val);
+  if (!student && !isNaN(val)) student = getStudentByNumber(parseInt(val));
+  if (student) {
+    setPreview(student);
+    showToast(`✅ ${student.name}`, 'success');
+  } else {
+    showToast('❌ Siswa tidak ditemukan', 'error');
+  }
+  document.getElementById('manualInput').value = '';
+}
+document.getElementById('manualInput').addEventListener('keypress', e => {
+  if (e.key === 'Enter') manualLookup();
+});
+
+// ── Set Preview ──
+function setPreview(student) {
+  currentStudentData = student;
+  const photo = localStorage.getItem(`photo_${student.id}`);
+  const prevPhoto = document.getElementById('prevPhoto');
+  if (photo) {
+    prevPhoto.innerHTML = `<img src="${photo}" alt="${student.name}"/>`;
+  } else {
+    const initials = student.name.split(' ').slice(0,2).map(w=>w[0]).join('');
+    prevPhoto.innerHTML = `<span>${initials}</span>`;
+  }
+  document.getElementById('prevName').textContent = student.name;
+  document.getElementById('prevClass').textContent = `Kelas ${student.class} — No. ${student.classNumber}`;
+  document.getElementById('prevNum').textContent = `Nomor Urut: ${student.overallNumber} dari 256`;
+  document.getElementById('previewCard').style.display = 'block';
+  document.getElementById('previewEmpty').style.display = 'none';
+}
+
+function clearPreview() {
+  currentStudentData = null;
+  document.getElementById('previewCard').style.display = 'none';
+  document.getElementById('previewEmpty').style.display = 'block';
+}
+
+// ── Send to display ──
+function sendToDisplay(studentArg) {
+  const student = studentArg || currentStudentData;
+  if (!student) { showToast('Pilih siswa terlebih dahulu', 'error'); return; }
+
+  // BroadcastChannel
+  bc.postMessage({ type: 'SHOW_STUDENT', student });
+  // localStorage fallback
+  localStorage.setItem('currentStudent', JSON.stringify(student));
+
+  // Add to history
+  addToHistory(student);
+  updateProgress();
+
+  // TTS in operator tab too
+  if (document.getElementById('ttsToggle').checked) {
+    speakStudentName(student);
+  }
+
+  showToast(`📡 Menampilkan: ${student.name}`, 'gold');
+}
+
+function speakPreview() {
+  if (currentStudentData) speakStudentName(currentStudentData);
+}
+
+function speakStudentName(student) {
+  if (!window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const text = `Selamat kepada Ananda ${student.name} dari Kelas ${student.class}`;
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'id-ID';
+  utter.rate = 0.85;
+  utter.pitch = 1.05;
+  utter.volume = parseFloat(document.getElementById('volumeSlider').value);
+  const voices = window.speechSynthesis.getVoices();
+  const idVoice = voices.find(v => v.lang.startsWith('id')) || voices.find(v => v.lang.startsWith('ms'));
+  if (idVoice) utter.voice = idVoice;
+  window.speechSynthesis.speak(utter);
+}
+
+// ── History ──
+function addToHistory(student) {
+  const entry = {
+    id: student.id, name: student.name,
+    cls: student.class, num: student.overallNumber,
+    time: new Date().toLocaleTimeString('id-ID')
+  };
+  history.unshift(entry);
+  if (history.length > 50) history.pop();
+  localStorage.setItem('callHistory', JSON.stringify(history));
+  calledCount = Math.max(calledCount, student.overallNumber);
+  localStorage.setItem('shownCount', calledCount);
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  if (history.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:rgba(255,255,255,.4);font-size:.85rem;">Belum ada siswa yang dipanggil</div>';
+    return;
+  }
+  list.innerHTML = history.map(h => `
+    <div class="history-item">
+      <div class="history-num">${h.num}</div>
+      <div class="history-info">
+        <div class="history-name">${h.name}</div>
+        <div class="history-class">${h.cls}</div>
+      </div>
+      <div class="history-time">${h.time}</div>
+    </div>
+  `).join('');
+}
+
+// ── Progress ──
+function updateProgress() {
+  const count = history.length;
+  document.getElementById('opCount').textContent = count;
+  document.getElementById('opProgress').style.width = `${(count/256)*100}%`;
+}
+
+// ── Next sequential ──
+function nextSequential() {
+  nextIndex = (nextIndex % 256) + 1;
+  const student = getStudentByNumber(nextIndex);
+  if (student) {
+    setPreview(student);
+    sendToDisplay(student);
+  }
+}
+
+// ── Reset ──
+function resetAll() {
+  if (!confirm('Reset semua riwayat pemanggilan?')) return;
+  history = [];
+  calledCount = 0;
+  nextIndex = 0;
+  localStorage.removeItem('callHistory');
+  localStorage.removeItem('shownCount');
+  localStorage.setItem('resetDisplay', Date.now().toString());
+  bc.postMessage({ type: 'RESET' });
+  clearPreview();
+  renderHistory();
+  updateProgress();
+  showToast('✅ Reset berhasil', 'success');
+}
+
+// ── Fullscreen ──
+function toggleFullscreen() {
+  if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{});
+  else document.exitFullscreen().catch(()=>{});
+}
+
+// ── Toast ──
+function showToast(msg, type = 'info') {
+  const tc = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  tc.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// Voices preload
+window.speechSynthesis.getVoices();
+window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+</script>
+</body>
+</html>

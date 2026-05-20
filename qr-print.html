@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Cetak QR Code – Pelepasan Kelas IX SMP N 5 Klaten</title>
+<link rel="stylesheet" href="css/style.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+body{background:linear-gradient(135deg,#060E1E 0%,#0D1F3C 100%);min-height:100vh;padding:20px;}
+.top-bar{display:flex;align-items:center;justify-content:space-between;max-width:1100px;margin:0 auto 24px;flex-wrap:wrap;gap:12px;}
+.main-wrap{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:20px;}
+
+/* Controls panel */
+.ctrl-panel{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;padding:20px;}
+
+/* QR Cards grid */
+.qr-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+  gap:16px;padding:20px;
+}
+
+/* Individual QR card */
+.qr-card{
+  background:rgba(17,34,68,.7);
+  border:1px solid rgba(212,175,55,.3);
+  border-radius:14px;padding:16px;
+  text-align:center;
+  transition:all .3s;cursor:pointer;
+}
+.qr-card:hover{border-color:var(--gold);transform:translateY(-3px);box-shadow:0 12px 30px rgba(212,175,55,.2);}
+.qr-canvas-wrap{
+  background:#fff;border-radius:10px;padding:10px;
+  margin:0 auto 12px;width:fit-content;
+  display:flex;align-items:center;justify-content:center;
+}
+.qr-num{font-family:'Cinzel',serif;font-weight:900;color:var(--gold);font-size:.95rem;margin-bottom:4px;}
+.qr-name{font-size:.78rem;color:#fff;font-weight:600;line-height:1.3;margin-bottom:2px;}
+.qr-class{font-size:.72rem;color:rgba(255,255,255,.6);}
+
+/* Print styles */
+@media print {
+  body{background:#fff!important;padding:0;}
+  .top-bar,.ctrl-panel,.no-print{display:none!important;}
+  .main-wrap{max-width:100%;}
+  .qr-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:8px;padding:0;
+  }
+  .qr-card{
+    background:#fff!important;border:1.5px solid #000!important;
+    border-radius:8px;padding:10px;break-inside:avoid;
+  }
+  .qr-num,.qr-name,.qr-class{color:#000!important;}
+  .qr-canvas-wrap{background:#fff;padding:6px;}
+}
+
+/* Progress */
+.gen-progress{
+  text-align:center;padding:40px;
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+}
+.gen-bar{width:300px;height:8px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;}
+.gen-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-light));border-radius:4px;transition:width .1s;}
+</style>
+</head>
+<body>
+<div id="toast-container"></div>
+
+<div class="top-bar">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <a href="index.html" class="btn btn-navy btn-sm">← Menu</a>
+    <div style="font-family:'Cinzel',serif;font-size:1.3rem;color:var(--gold);">🔲 Cetak QR Code Siswa</div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <button class="btn btn-navy btn-sm no-print" onclick="selectAll()">☑ Pilih Semua</button>
+    <button class="btn btn-outline btn-sm no-print" onclick="clearSelect()">☐ Batal Pilih</button>
+    <button class="btn btn-gold no-print" onclick="printSelected()">🖨️ Cetak Terpilih</button>
+    <button class="btn btn-gold no-print" onclick="printAll()">🖨️ Cetak Semua</button>
+  </div>
+</div>
+
+<div class="main-wrap">
+  <!-- Controls -->
+  <div class="card ctrl-panel no-print">
+    <div>
+      <label class="field-label">Filter Kelas</label>
+      <select id="classFilter" class="input-field" onchange="applyFilter()">
+        <option value="">Semua Kelas</option>
+        <option>IX A</option><option>IX B</option><option>IX C</option><option>IX D</option>
+        <option>IX E</option><option>IX F</option><option>IX G</option><option>IX H</option>
+      </select>
+    </div>
+    <div>
+      <label class="field-label">Ukuran QR</label>
+      <select id="qrSize" class="input-field" onchange="regenerate()">
+        <option value="120">Kecil (120px)</option>
+        <option value="150" selected>Sedang (150px)</option>
+        <option value="180">Besar (180px)</option>
+      </select>
+    </div>
+    <div>
+      <label class="field-label">Mulai dari No.</label>
+      <input type="number" id="startNum" class="input-field" value="1" min="1" max="256"/>
+    </div>
+    <div>
+      <label class="field-label">Sampai No.</label>
+      <input type="number" id="endNum" class="input-field" value="256" min="1" max="256"/>
+    </div>
+    <div style="display:flex;align-items:flex-end;">
+      <button class="btn btn-gold" style="width:100%" onclick="applyFilter()">🔄 Generate</button>
+    </div>
+  </div>
+
+  <!-- Selected info -->
+  <div id="selInfo" class="no-print" style="text-align:center;color:var(--gold);font-weight:600;font-size:.9rem;display:none;"></div>
+
+  <!-- Loading -->
+  <div class="gen-progress" id="genProgress">
+    <div class="loader"></div>
+    <div style="color:rgba(255,255,255,.7);">Membuat QR Code…</div>
+    <div class="gen-bar"><div class="gen-fill" id="genFill" style="width:0%"></div></div>
+    <div id="genText" style="color:var(--gold);font-size:.85rem;">0 / 256</div>
+  </div>
+
+  <!-- QR Grid -->
+  <div class="qr-grid" id="qrGrid"></div>
+</div>
+
+<script src="js/students.js"></script>
+<script>
+let selectedIds = new Set();
+let currentStudents = [];
+
+// Generate QR codes in batches to avoid freezing
+async function generateQRs(students) {
+  const grid = document.getElementById('qrGrid');
+  grid.innerHTML = '';
+  document.getElementById('genProgress').style.display = 'flex';
+  const size = parseInt(document.getElementById('qrSize').value);
+
+  for (let i=0; i<students.length; i++) {
+    const s = students[i];
+    const card = document.createElement('div');
+    card.className = 'qr-card';
+    card.dataset.id = s.id;
+    card.onclick = () => toggleSelect(s.id, card);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'qr-canvas-wrap';
+    wrap.id = `qr-wrap-${s.id}`;
+
+    card.innerHTML = `
+      <div class="qr-canvas-wrap" id="qrw-${i}"></div>
+      <div class="qr-num">No. ${s.overallNumber}</div>
+      <div class="qr-name">${s.name}</div>
+      <div class="qr-class">${s.class} — No. ${s.classNumber}</div>
+    `;
+    grid.appendChild(card);
+
+    // Generate QR
+    await new Promise(resolve => {
+      requestAnimationFrame(() => {
+        try {
+          new QRCode(card.querySelector(`#qrw-${i}`), {
+            text: s.qrCode,
+            width: size, height: size,
+            colorDark: '#000000', colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.M
+          });
+        } catch(e) {}
+        resolve();
+      });
+    });
+
+    // Update progress
+    const pct = Math.round(((i+1)/students.length)*100);
+    document.getElementById('genFill').style.width = pct+'%';
+    document.getElementById('genText').textContent = `${i+1} / ${students.length}`;
+
+    // Yield every 10 items
+    if (i % 10 === 9) await new Promise(r => setTimeout(r, 0));
+  }
+
+  document.getElementById('genProgress').style.display = 'none';
+  updateSelInfo();
+}
+
+function applyFilter() {
+  const cls = document.getElementById('classFilter').value;
+  const start = parseInt(document.getElementById('startNum').value) || 1;
+  const end = parseInt(document.getElementById('endNum').value) || 256;
+  currentStudents = STUDENTS.filter(s =>
+    (!cls || s.class === cls) &&
+    s.overallNumber >= start && s.overallNumber <= end
+  );
+  selectedIds.clear();
+  generateQRs(currentStudents);
+}
+
+function regenerate() { applyFilter(); }
+
+function toggleSelect(id, card) {
+  if (selectedIds.has(id)) {
+    selectedIds.delete(id);
+    card.style.borderColor = '';
+    card.style.boxShadow = '';
+  } else {
+    selectedIds.add(id);
+    card.style.borderColor = 'var(--gold)';
+    card.style.boxShadow = '0 0 20px rgba(212,175,55,.5)';
+  }
+  updateSelInfo();
+}
+
+function selectAll() {
+  currentStudents.forEach(s => {
+    selectedIds.add(s.id);
+    const cards = document.querySelectorAll('.qr-card');
+    cards.forEach(c => { c.style.borderColor='var(--gold)'; c.style.boxShadow='0 0 20px rgba(212,175,55,.5)'; });
+  });
+  updateSelInfo();
+}
+
+function clearSelect() {
+  selectedIds.clear();
+  document.querySelectorAll('.qr-card').forEach(c => { c.style.borderColor=''; c.style.boxShadow=''; });
+  updateSelInfo();
+}
+
+function updateSelInfo() {
+  const el = document.getElementById('selInfo');
+  if (selectedIds.size > 0) {
+    el.style.display = 'block';
+    el.textContent = `${selectedIds.size} QR Code terpilih`;
+  } else {
+    el.style.display = 'none';
+  }
+}
+
+function printSelected() {
+  if (selectedIds.size === 0) { showToast('Pilih QR Code terlebih dahulu','error'); return; }
+  // Hide non-selected
+  document.querySelectorAll('.qr-card').forEach(c => {
+    c.style.display = selectedIds.has(c.dataset.id) ? '' : 'none';
+  });
+  window.print();
+  // Restore
+  document.querySelectorAll('.qr-card').forEach(c => c.style.display='');
+}
+
+function printAll() { window.print(); }
+
+function showToast(msg, type='info') {
+  const tc=document.getElementById('toast-container');
+  const t=document.createElement('div');
+  t.className=`toast toast-${type}`;
+  t.textContent=msg;
+  tc.appendChild(t);
+  setTimeout(()=>t.remove(),4000);
+}
+
+// Init: generate all
+applyFilter();
+</script>
+</body>
+</html>

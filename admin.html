@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Dashboard Admin – Pelepasan Kelas IX SMP N 5 Klaten</title>
+<link rel="stylesheet" href="css/style.css"/>
+<style>
+body{background:linear-gradient(135deg,#060E1E 0%,#0D1F3C 100%);min-height:100vh;padding:20px;}
+.top-bar{display:flex;align-items:center;justify-content:space-between;max-width:1200px;margin:0 auto 24px;flex-wrap:wrap;gap:12px;}
+.page-title{font-family:'Cinzel',serif;font-size:1.4rem;color:var(--gold);}
+.main-wrap{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:24px;}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;}
+.stat-card{
+  padding:20px;border-radius:16px;text-align:center;
+  background:rgba(17,34,68,.7);border:1px solid rgba(212,175,55,.25);
+}
+.stat-card .num{font-family:'Cinzel',serif;font-size:2rem;font-weight:900;color:var(--gold);}
+.stat-card .lbl{font-size:.78rem;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.08em;margin-top:4px;}
+
+/* Toolbar */
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.search-wrap{flex:1;min-width:200px;position:relative;}
+.search-wrap input{padding-left:36px;}
+.search-wrap::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.9rem;}
+
+/* Table */
+.table-wrap{overflow-x:auto;border-radius:16px;border:1px solid rgba(212,175,55,.2);}
+table{width:100%;border-collapse:collapse;font-size:.88rem;}
+thead th{
+  background:rgba(10,22,40,.9);color:var(--gold);
+  padding:13px 14px;text-align:left;font-weight:600;
+  font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;
+  white-space:nowrap;
+}
+tbody tr{border-bottom:1px solid rgba(255,255,255,.06);transition:background .2s;}
+tbody tr:hover{background:rgba(212,175,55,.05);}
+tbody td{padding:11px 14px;color:rgba(255,255,255,.9);vertical-align:middle;}
+.td-photo{width:52px;height:52px;border-radius:50%;overflow:hidden;border:2px solid rgba(212,175,55,.4);display:flex;align-items:center;justify-content:center;background:var(--navy-mid);font-size:1.2rem;flex-shrink:0;}
+.td-photo img{width:100%;height:100%;object-fit:cover;}
+.class-badge{
+  display:inline-block;padding:3px 10px;border-radius:50px;font-size:.75rem;font-weight:700;
+  background:rgba(21,101,192,.25);color:var(--blue-light);border:1px solid rgba(66,165,245,.4);
+}
+.gender-m{color:#64B5F6;}.gender-f{color:#F48FB1;}
+
+/* Photo upload */
+.upload-cell{display:flex;align-items:center;gap:8px;}
+.upload-btn{
+  padding:4px 10px;border-radius:8px;font-size:.75rem;font-weight:600;cursor:pointer;
+  background:rgba(212,175,55,.15);border:1px solid rgba(212,175,55,.4);color:var(--gold);
+  transition:all .2s;white-space:nowrap;
+}
+.upload-btn:hover{background:rgba(212,175,55,.3);}
+.upload-btn.has-photo{background:rgba(46,125,50,.2);border-color:#66BB6A;color:#66BB6A;}
+.del-photo-btn{
+  padding:4px 8px;border-radius:6px;font-size:.72rem;cursor:pointer;
+  background:rgba(198,40,40,.2);border:1px solid rgba(244,67,54,.4);color:#EF9A9A;
+}
+
+/* Pagination */
+.pagination{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap;}
+.page-btn{
+  padding:6px 14px;border-radius:8px;border:1px solid rgba(212,175,55,.3);
+  background:transparent;color:rgba(255,255,255,.7);cursor:pointer;font-size:.85rem;transition:all .2s;
+}
+.page-btn:hover,.page-btn.active{background:var(--gold);color:var(--navy);border-color:var(--gold);}
+.page-info{font-size:.82rem;color:rgba(255,255,255,.5);}
+
+/* Modal */
+.modal-title{font-family:'Cinzel',serif;font-size:1.2rem;color:var(--gold);margin-bottom:20px;}
+.modal-photo-preview{
+  width:120px;height:120px;border-radius:50%;margin:0 auto 16px;
+  border:3px solid var(--gold);overflow:hidden;display:flex;align-items:center;justify-content:center;
+  background:var(--navy-mid);font-size:3rem;
+}
+.modal-photo-preview img{width:100%;height:100%;object-fit:cover;}
+</style>
+</head>
+<body>
+<div id="toast-container"></div>
+
+<!-- Modal: edit student -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box" style="max-width:480px;">
+    <div class="modal-title">✏️ Edit Data Siswa</div>
+    <div class="modal-photo-preview" id="modalPhotoPreview">?</div>
+    <div style="text-align:center;margin-bottom:16px;">
+      <label class="btn btn-outline btn-sm" style="cursor:pointer;">
+        📷 Upload Foto
+        <input type="file" id="modalPhotoInput" accept="image/*" hidden onchange="handleModalPhoto(this)"/>
+      </label>
+      <button class="btn btn-danger btn-sm" onclick="deleteModalPhoto()">🗑️ Hapus Foto</button>
+    </div>
+    <div class="divider-gold"></div>
+    <div style="display:grid;gap:12px;margin-top:12px;">
+      <div>
+        <label class="field-label">Nama Lengkap</label>
+        <input type="text" id="editName" class="input-field"/>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label class="field-label">Kelas</label>
+          <select id="editClass" class="input-field">
+            <option>IX A</option><option>IX B</option><option>IX C</option><option>IX D</option>
+            <option>IX E</option><option>IX F</option><option>IX G</option><option>IX H</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Jenis Kelamin</label>
+          <select id="editGender" class="input-field">
+            <option value="M">Laki-laki</option>
+            <option value="F">Perempuan</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px;">
+      <button class="btn btn-gold" style="flex:1" onclick="saveEdit()">💾 Simpan</button>
+      <button class="btn btn-navy" onclick="closeModal()">Batal</button>
+    </div>
+  </div>
+</div>
+
+<div class="top-bar">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <a href="index.html" class="btn btn-navy btn-sm">← Menu</a>
+    <div class="page-title">⚙️ Dashboard Admin</div>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;">
+    <a href="photo-manager.html" class="btn btn-outline btn-sm">📷 Kelola Foto</a>
+    <button class="btn btn-outline btn-sm" onclick="exportJSON()">📥 Export JSON</button>
+    <a href="qr-print.html" class="btn btn-gold btn-sm">🔲 Cetak QR</a>
+  </div>
+</div>
+
+<div class="main-wrap">
+  <!-- Stats -->
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card"><div class="num">256</div><div class="lbl">Total Siswa</div></div>
+    <div class="stat-card"><div class="num" id="statPhoto">0</div><div class="lbl">Foto Terupload</div></div>
+    <div class="stat-card"><div class="num" id="statCalled">0</div><div class="lbl">Sudah Dipanggil</div></div>
+    <div class="stat-card"><div class="num" id="statRemain">256</div><div class="lbl">Belum Dipanggil</div></div>
+    <div class="stat-card"><div class="num">8</div><div class="lbl">Kelas</div></div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="card" style="padding:16px;">
+    <div class="toolbar">
+      <div class="search-wrap">
+        <input type="text" id="searchInput" class="input-field" placeholder="Cari nama atau kelas…" oninput="filterStudents()"/>
+      </div>
+      <select id="classFilter" class="input-field" style="width:auto;" onchange="filterStudents()">
+        <option value="">Semua Kelas</option>
+        <option>IX A</option><option>IX B</option><option>IX C</option><option>IX D</option>
+        <option>IX E</option><option>IX F</option><option>IX G</option><option>IX H</option>
+      </select>
+      <select id="photoFilter" class="input-field" style="width:auto;" onchange="filterStudents()">
+        <option value="">Semua Foto</option>
+        <option value="has">Ada Foto</option>
+        <option value="no">Belum Ada Foto</option>
+      </select>
+      <button class="btn btn-navy btn-sm" onclick="bulkUploadPrompt()">📁 Upload Massal</button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div>
+    <div class="table-wrap">
+      <table id="studentTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Foto</th>
+            <th>Nama Lengkap</th>
+            <th>Kelas</th>
+            <th>No. Kelas</th>
+            <th>L/P</th>
+            <th>QR Code</th>
+            <th>Foto</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="pagination"></div>
+    <div class="page-info" style="text-align:center;margin-top:8px;" id="pageInfo"></div>
+  </div>
+</div>
+
+<!-- Hidden file input for bulk -->
+<input type="file" id="bulkInput" accept="image/*" multiple hidden onchange="handleBulkUpload(this)"/>
+
+<script src="js/students.js"></script>
+<script>
+let filteredStudents = [...STUDENTS];
+let currentPage = 1;
+const pageSize = 20;
+let editingId = null;
+let tempPhotoData = null;
+
+// Init
+updateStats();
+renderTable();
+
+function updateStats() {
+  let photoCount = 0;
+  STUDENTS.forEach(s => { if (localStorage.getItem(`photo_${s.id}`)) photoCount++; });
+  const called = JSON.parse(localStorage.getItem('callHistory') || '[]').length;
+  document.getElementById('statPhoto').textContent = photoCount;
+  document.getElementById('statCalled').textContent = called;
+  document.getElementById('statRemain').textContent = 256 - called;
+}
+
+function filterStudents() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const cls = document.getElementById('classFilter').value;
+  const pf = document.getElementById('photoFilter').value;
+  filteredStudents = STUDENTS.filter(s => {
+    const matchQ = !q || s.name.toLowerCase().includes(q) || s.class.toLowerCase().includes(q);
+    const matchC = !cls || s.class === cls;
+    const hasPhoto = !!localStorage.getItem(`photo_${s.id}`);
+    const matchP = !pf || (pf==='has' && hasPhoto) || (pf==='no' && !hasPhoto);
+    return matchQ && matchC && matchP;
+  });
+  currentPage = 1;
+  renderTable();
+}
+
+function renderTable() {
+  const start = (currentPage-1)*pageSize;
+  const page = filteredStudents.slice(start, start+pageSize);
+  const body = document.getElementById('tableBody');
+  body.innerHTML = page.map(s => {
+    const photo = localStorage.getItem(`photo_${s.id}`);
+    const initials = s.name.split(' ').slice(0,2).map(w=>w[0]).join('');
+    return `
+      <tr>
+        <td style="font-weight:700;color:var(--gold);">${s.overallNumber}</td>
+        <td>
+          <div class="td-photo">
+            ${photo ? `<img src="${photo}" alt="${s.name}"/>` : initials}
+          </div>
+        </td>
+        <td style="font-weight:600;max-width:200px;">${s.name}</td>
+        <td><span class="class-badge">${s.class}</span></td>
+        <td style="text-align:center;">${s.classNumber}</td>
+        <td><span class="${s.gender==='M'?'gender-m':'gender-f'}">${s.gender==='M'?'♂ L':'♀ P'}</span></td>
+        <td style="font-size:.72rem;color:rgba(255,255,255,.5);">${s.qrCode}</td>
+        <td>
+          <div class="upload-cell">
+            <label class="upload-btn ${photo?'has-photo':''}" title="Upload foto">
+              ${photo?'✅ Ada':'📷 Upload'}
+              <input type="file" accept="image/*" hidden onchange="handlePhotoUpload(this,'${s.id}')"/>
+            </label>
+            ${photo?`<button class="del-photo-btn" onclick="deletePhoto('${s.id}')">🗑️</button>`:''}
+          </div>
+        </td>
+        <td>
+          <button class="btn btn-navy btn-sm" onclick="openEdit('${s.id}')">✏️</button>
+        </td>
+      </tr>`;
+  }).join('');
+  renderPagination();
+}
+
+function renderPagination() {
+  const total = Math.ceil(filteredStudents.length/pageSize);
+  const pg = document.getElementById('pagination');
+  let html = '';
+  if (currentPage > 1) html += `<button class="page-btn" onclick="goPage(${currentPage-1})">‹</button>`;
+  for (let i=Math.max(1,currentPage-2); i<=Math.min(total,currentPage+2); i++) {
+    html += `<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+  }
+  if (currentPage < total) html += `<button class="page-btn" onclick="goPage(${currentPage+1})">›</button>`;
+  pg.innerHTML = html;
+  document.getElementById('pageInfo').textContent =
+    `Menampilkan ${Math.min((currentPage-1)*pageSize+1, filteredStudents.length)}–${Math.min(currentPage*pageSize,filteredStudents.length)} dari ${filteredStudents.length} siswa`;
+}
+
+function goPage(p) { currentPage=p; renderTable(); window.scrollTo(0,400); }
+
+// ── Photo upload ──
+function handlePhotoUpload(input, studentId) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 2*1024*1024) { showToast('Ukuran file max 2MB', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const ok = saveStudentPhoto(studentId, e.target.result);
+    if (ok) { showToast('✅ Foto berhasil disimpan', 'success'); updateStats(); renderTable(); }
+    else showToast('❌ Penyimpanan penuh', 'error');
+  };
+  reader.readAsDataURL(file);
+}
+
+function deletePhoto(studentId) {
+  if (!confirm('Hapus foto siswa ini?')) return;
+  removeStudentPhoto(studentId);
+  showToast('🗑️ Foto dihapus', 'info');
+  updateStats(); renderTable();
+}
+
+// ── Edit modal ──
+function openEdit(id) {
+  const s = STUDENTS.find(x=>x.id===id);
+  if (!s) return;
+  editingId = id;
+  tempPhotoData = null;
+  document.getElementById('editName').value = s.name;
+  document.getElementById('editClass').value = s.class;
+  document.getElementById('editGender').value = s.gender;
+  const photo = localStorage.getItem(`photo_${id}`);
+  const prev = document.getElementById('modalPhotoPreview');
+  if (photo) prev.innerHTML=`<img src="${photo}"/>`;
+  else {
+    const ini = s.name.split(' ').slice(0,2).map(w=>w[0]).join('');
+    prev.textContent = ini;
+  }
+  document.getElementById('editModal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('editModal').classList.remove('active');
+  editingId=null; tempPhotoData=null;
+}
+
+function handleModalPhoto(input) {
+  const file=input.files[0]; if(!file) return;
+  if(file.size>2*1024*1024){showToast('Max 2MB','error');return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    tempPhotoData=e.target.result;
+    document.getElementById('modalPhotoPreview').innerHTML=`<img src="${tempPhotoData}"/>`;
+  };
+  reader.readAsDataURL(file);
+}
+
+function deleteModalPhoto() {
+  tempPhotoData='__delete__';
+  const s=STUDENTS.find(x=>x.id===editingId);
+  const ini=s?s.name.split(' ').slice(0,2).map(w=>w[0]).join(''):'?';
+  document.getElementById('modalPhotoPreview').textContent=ini;
+}
+
+function saveEdit() {
+  if(!editingId) return;
+  const s=STUDENTS.find(x=>x.id===editingId);
+  if(!s) return;
+  s.name=document.getElementById('editName').value.trim()||s.name;
+  s.class=document.getElementById('editClass').value;
+  s.gender=document.getElementById('editGender').value;
+  if(tempPhotoData==='__delete__') removeStudentPhoto(editingId);
+  else if(tempPhotoData) saveStudentPhoto(editingId, tempPhotoData);
+  showToast(`✅ Data ${s.name} disimpan`,'success');
+  closeModal(); updateStats(); renderTable();
+}
+
+// ── Bulk upload ──
+function bulkUploadPrompt() {
+  showToast('Pilih banyak foto sekaligus. Nama file harus mengandung nomor urut siswa (misal: 001_Ahmad.jpg)','info');
+  document.getElementById('bulkInput').click();
+}
+
+function handleBulkUpload(input) {
+  const files=Array.from(input.files);
+  let count=0;
+  files.forEach(file=>{
+    const match=file.name.match(/(\d+)/);
+    if(!match) return;
+    const num=parseInt(match[1]);
+    const s=getStudentByNumber(num);
+    if(!s) return;
+    const reader=new FileReader();
+    reader.onload=e=>{
+      if(saveStudentPhoto(s.id, e.target.result)) count++;
+      if(count===files.filter(f=>f.name.match(/\d+/)).length){
+        showToast(`✅ ${count} foto berhasil diupload`,'success');
+        updateStats(); renderTable();
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── Export ──
+function exportJSON() {
+  const data=STUDENTS.map(s=>({
+    id:s.id,no:s.overallNumber,name:s.name,class:s.class,
+    classNo:s.classNumber,gender:s.gender,hasPhoto:!!localStorage.getItem(`photo_${s.id}`)
+  }));
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='siswa_pelepasan_2026.json';
+  a.click();
+  showToast('📥 Data diekspor','success');
+}
+
+// ── Toast ──
+function showToast(msg,type='info'){
+  const tc=document.getElementById('toast-container');
+  const t=document.createElement('div');
+  t.className=`toast toast-${type}`;
+  t.textContent=msg;
+  tc.appendChild(t);
+  setTimeout(()=>t.remove(),4000);
+}
+
+// Close modal on backdrop
+document.getElementById('editModal').addEventListener('click',e=>{
+  if(e.target===e.currentTarget) closeModal();
+});
+</script>
+</body>
+</html>
